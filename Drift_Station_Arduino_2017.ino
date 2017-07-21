@@ -47,11 +47,7 @@ void setup(){
   pinMode(4,OUTPUT);
   pinMode(3,OUTPUT);
   pinMode(2,OUTPUT);
-  
-  //pinMode(2,INPUT);
-  //digitalWrite(2,HIGH);
-  //pinMode(output_pin,OUTPUT);
-  //attachInterrupt(0,acon,RISING);
+ 
   
   SPI.setBitOrder(MSBFIRST);
 SPI.setClockDivider(SPI_CLOCK_DIV8);
@@ -78,45 +74,17 @@ Serial.print("\n");
   float temp = (Voltage*33.78 +63.87);
       Serial.print("A");//temp
       Serial.print(temp);
-      //Serial.print("\n");
-     //Serial.print("Voltage=");
-    //Serial.print(Voltage,DEC);
-    //Serial.print("\n");
      delay(100);
 //LEAKAGE CURRENT
   float LeakageCur= (ADQRead2()*.00244260/5 +0.223)/86;//
   Serial.print("B");//LC
   Serial.print(LeakageCur,DEC);
-  //Serial.print("\n");
-//TEMP and HV SETPOINTS
-// if (Serial.available() >0){
- // delay(300);
-   //HV_get= HVDataRetrieve();
-   
- //}
-//delay(300);
-   //if (Serial.available() >0){
-   //temp_want = TEMPDataRetrieve();//adress 1 for TEMP 
-     
-    
- //}
-  
-   //Serial.print("C");//HVSET
-   //Serial.print(HV_want);
- //Serial.print("\n");
- Serial.print("C");//HVNOW
+
+ Serial.print("C");//current voltage
    Serial.print(n);
-  //Serial.print("\n"); 
-   //Serial.print("TEMPSET");
-   //Serial.print(temp_want);
    Serial.print("D");
-//Serial.print("\n");
-//SEND OUT HV SIGNAL 
-// if (abs(HV_get - HV_prev)<20){ //HV_prev used to avoid erroneous readings from affecting HV.
    HV_want =HV_get;//adress 0 for HV
-  //Send HV signal
- // HV_prev=HV_get;
- //}
+
  if (n <HV_want){
    n=n+1;
  }
@@ -139,10 +107,6 @@ else {
 }
   
 
-
-
-//Serial.print(i);
-
 //whenever the heating rate is changed, it updates
 if(old_temp_index != temp_index){
   binaryWrite(temp_index);
@@ -150,24 +114,7 @@ if(old_temp_index != temp_index){
   old_temp_index = temp_index;
 }
 
-//serialEvent();
 delay(900); //nate was 900
-
-}
-
-void acon(){
-  //Serial.print("break start ");
-  if(temp_index>15){ //want to raise temperture
- /* delayMicroseconds((1023-temp_index*20.46)*6.84+1100); //Min 1100 Max 8100 usec
-  digitalWrite(output_pin,HIGH);
- // delayMicroseconds(100);
-  digitalWrite(output_pin,LOW); */
-  run_heater = true;
-  heater_delay = ((1023-temp_index*20.46)*6.84+1100); //gabe added -500
-}
-else if(temp_index<=15){
-  
-}
 
 }
 
@@ -252,9 +199,8 @@ int ADQRead2()
 
 
 /*
- * not sure what this is for
- * 
- * it's not used anywhere else in the code
+ *not used anywhere in code
+ *ADC allows for third conversion pin which would be accessed with this function.
  */
 int ADQRead3(){
         byte inByte1 = 0;
@@ -304,177 +250,6 @@ void dacwriteB(int value){
       //Serial.println( DATA1 +48,BIN);
       //Serial.println(DATA2,BIN);
 }
-
-
-
-/*
-int TEMPDataRetrieve(){ //input DataRetrieve("HV") or DataRetrieve("TEMP") in loop
- 
-      
-        
-        if (Serial.available()>0){
-          String DataSeperate = String(char(Serial.peek()));
-            if (DataSeperate == "T"){
-              
-              String AdressErase= String(char(Serial.read()));
-              while(Serial.available() >0){              
-                   TEMPBuffer += String(char(Serial.read())); 
-              TEMPData= TEMPBuffer.toInt();
-            }                          
-         Serial.flush();
-          TEMPBuffer=('0');
-         
-         
-        }
-       
-     }
-        
-     return  TEMPData;      
-    }
-       
-       
-
-
-
-int HVDataRetrieve(){ //input DataRetrieve("HV") or DataRetrieve("TEMP") in loop
- 
-
- 
-     
-        if (Serial.available()>0){
-          String DataSeperate = String(char(Serial.peek()));
-            if (DataSeperate == "H"){
-             
-              String AdressErase= String(char(Serial.read()));
-              while(Serial.available() >0){              
-                   HVBuffer += String(char(Serial.read())); 
-              HVData= HVBuffer.toInt();
-          
-          }                          
-          Serial.flush();
-          HVBuffer=('0');
-        
-           
-        }
-      
-    
-      
-     }
-         
-      return  HVData;
-      }
-   */    
-
-       /* 
-void serialEvent(){
-
- String inBuffer_T;
- String inBuffer_H;
- int lf=95;   
-     
-if ( Serial.available() > 0) {  // If data is available,
-            
-      int address = Serial.read(); //Reads the address bit, i.e A,B,C
-         
-         //Case statements break up data into variables by using the address bit of address variable.  
-        switch(address){
-          
-          case 'T':
-                       inBuffer_T =  Serial.readStringUntil(lf);
-                        for (int i=0; i < inBuffer_T.length(); i++){
-                         if (inBuffer_T[i]== lf ){
-                           inBuffer_T[i] = 0;
-                           }
-                        }   
-                       temp_want = inBuffer_T.toInt();
-                     
-                     break;                 
-                
-          case 'H':
-                       inBuffer_H =  Serial.readStringUntil(lf);
-                        for (int i=0; i < inBuffer_H.length(); i++){
-                         if (inBuffer_H[i]== lf ){
-                           inBuffer_H[i] = 0;
-                           }
-                        }   
-                       HV_get = inBuffer_H.toInt();              
-                     
-                     break;     
-                  }
-                
-        }
-}
-
-*/
-
-/*
- * old (buggy) serialEvent code
- * 
-void serialEvent(){
-
- String inBuffer_T;
- String inBuffer_H;
- String data = ""; //g
- int lf='_';
-     
-while ( Serial.available()) {  // If data is available, //Gabe changed from if to while so it processes all data before moving on
-  //lines marked with "//g" are lines Gabe added for debugging and aren't necessary
-            
-      char address = Serial.read(); //Reads the address bit, i.e A,B,C
-      if(address != 10){
-        data += address; //g
-        Serial.print(" address is ");
-      Serial.print(address);
-      }
-      else {
-        data += "10";
-      }
-      
-         //Case statements break up data into variables by using the address bit of address variable.  
-        switch(address){
-          
-          case 'T':
-                       inBuffer_T =  Serial.(lf);
-                       data += inBuffer_T; //greadStringUntil
-                       data += "_"; //g
-                        for (int i=0; i < inBuffer_T.length(); i++){
-                         if (inBuffer_T[i]== lf ){
-                           inBuffer_T[i] = 0;
-                           Serial.print(" if statement T was called");
-                           }
-                        }   
-                        Serial.print(" inBuffer_T is equal to ");
-                        Serial.print(inBuffer_T);
-                        Serial.print(", tempwant = ");
-                        Serial.print(inBuffer_T.toInt());
-                       temp_want = inBuffer_T.toInt();
-                     
-                     break;                 
-                
-          case 'H':
-                       inBuffer_H =  Serial.readStringUntil(lf);
-                       data += inBuffer_H;
-                       data += "_";
-                        for (int i=0; i < inBuffer_H.length(); i++){
-                         if (inBuffer_H[i]== lf ){
-                           inBuffer_H[i] = 0;
-                           Serial.print(" if statement H was called");
-                           }
-                        }   
-                        Serial.print(" inBuffer_H is equal to ");
-                        Serial.print(inBuffer_H);
-                        Serial.print(", HV_get = ");
-                        Serial.print(inBuffer_H.toInt());
-                       HV_get = inBuffer_H.toInt();              
-                     
-                     break;     
-                  }
-                
-        }
-        Serial.print(" the entire string arduino recieved is: ");
-        Serial.print(data);
-}
-*/
 
 
 /*
@@ -554,59 +329,6 @@ boolean messageValid(String message){
     
   }
 
-  /* Nate hard coded checks ~ no longer necessary
-  if(message.charAt(message.length()-1) == '@'){
-        ehold = true;
-        eend = false;
-        lctrip = false;
-        emergencycheck = true;
-      } else if(message.charAt(message.length()-1) == '*'){
-        eend = true;
-        ehold = false;
-        lctrip = false;
-        emergencycheck = true;
-      }else if(message.charAt(message.length()-1) == '$'){
-        lctrip = true;
-        ehold = false;
-        eend = false;
-        emergencycheck = true;
-      } else if(message.charAt(message.length()-1) == '%'){
-        temp0 = false;
-        temp50 = true;
-        temp70 = false;
-        temp90 = false;
-        temp95 = false;
-        emergencycheck = true;
-      } else if(message.charAt(message.length()-1) == '&'){
-        temp0 = false;
-        temp50 = false;
-        temp70 = true;
-        temp90 = false;
-        temp95 = false;
-        emergencycheck = true;
-      } 
-      else if(message.charAt(message.length()-1) == '?'){
-        temp0 = false;
-        temp50 = false;
-        temp70 = false;
-        temp90 = true;
-        temp95 = false;
-        emergencycheck = true;
-      } else if(message.charAt(message.length()-1) == '#'){
-        temp0 = false;
-        temp50 = false;
-        temp70 = false;
-        temp90 = false;
-        temp95 = true;
-        emergencycheck = true;
-      } else if(message.charAt(message.length()-1) == ')'){
-        temp0 = true;
-        temp50 = false;
-        temp70 = false;
-        temp90 = false;
-        temp95 = false;
-        emergencycheck = true;
-      } */
   validity = (hasT && has_1 && hasH && has_2 && hase); //redundant but for the sake of readability
   return validity;
 }
@@ -644,48 +366,6 @@ void serialEvent()
       if(requestedVolt != -1){
         HV_get = requestedVolt;
       } 
-
-      /* Nate hard coded - no longer necessary
-      if (temp0==true){
-      temp_want = 0; 
-      HV_get = 250;
-      }else if (temp50==true){
-      temp_want = 50; 
-      HV_get = 250;
-      } else if (temp70==true){
-      temp_want = 70; 
-      HV_get = 250;
-      } else if (temp90==true){
-      temp_want = 90; 
-      HV_get = 250;
-      }else if (temp95==true){
-      temp_want = 95; 
-      HV_get = 250;
-      }*/
-     
-      
-      /* Nate hard code
-      if(eend == true){
-        HV_get = 0;
-        temp_want = 0;
-      } else if(ehold == true){
-       HV_get = 250;
-       if(temp50 == true){
-        temp_want = 50;
-       }if(temp0 == true){
-        temp_want = 0;
-       }if(temp70 == true){
-        temp_want = 70;
-       }if(temp90 == true){
-        temp_want = 90;
-       }if(temp95 == true){
-        temp_want = 95;
-       }*/
-       
-       /*else if (lctrip==true){ //nate hard code?
-      HV_get=250;
-      temp_want=0;
-      } */
 
       /* for debugging
       Serial.print(" parsed temperture as: ");
